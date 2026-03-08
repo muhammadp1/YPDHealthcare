@@ -27,7 +27,7 @@ export function PlatformsPage() {
           name: p.name,
           createdAt: p.createdAt,
           status: "Active",
-          logo: "/src/app/components/image.png",
+          logo: "https://i.ebayimg.com/images/g/r5AAAOSwy~xmlOS6/s-l140.webp",
         }))
       );
     } catch (err) {

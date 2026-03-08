@@ -36,10 +36,10 @@ export function DashboardPage() {
 
   // Hardcoded platform status
   const platforms = [
-    { name: "Amazon", status: "Active", logo: "../components/image.png" },
-    { name: "Ebay", status: "Inactive", logo: "/src/app/components/image.png" },
-    { name: "Temu", status: "Active", logo: "/src/app/components/image.png" },
-    { name: "TikTok", status: "Active", logo: "/src/app/components/image.png" },
+    { name: "Amazon", status: "Active", logo: "https://i.ebayimg.com/images/g/r5AAAOSwy~xmlOS6/s-l140.webp" },
+    { name: "Ebay", status: "Inactive", logo: "https://i.ebayimg.com/images/g/r5AAAOSwy~xmlOS6/s-l140.webp" },
+    { name: "Temu", status: "Active", logo: "https://i.ebayimg.com/images/g/r5AAAOSwy~xmlOS6/s-l140.webp" },
+    { name: "TikTok", status: "Active", logo: "https://i.ebayimg.com/images/g/r5AAAOSwy~xmlOS6/s-l140.webp" },
   ];
 
   return (
