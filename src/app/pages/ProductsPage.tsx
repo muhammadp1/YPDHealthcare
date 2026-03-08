@@ -16,12 +16,12 @@ export function ProductsPage() {
 
   // Fetch products
  useEffect(() => {
-  fetchProducts(); 
+  fetchProducts();
       
   }, [isModalOpen]);
 
   const fetchProducts = (page = 0, size = 1000) => { // fetch many items at once
-  fetch(`http://localhost:8080/products?page=${page}&size=${size}`)
+  fetch(`https://pharmacy-management-9ym8.onrender.com/products?page=${page}&size=${size}`)
     .then(res => res.json())
     .then(data => {
       if (data.content) setProducts(data.content);
@@ -52,7 +52,7 @@ export function ProductsPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/products/${id}`, {
+      const res = await fetch(`https://pharmacy-management-9ym8.onrender.com/products/${id}`, {
         method: "DELETE",
       });
 
