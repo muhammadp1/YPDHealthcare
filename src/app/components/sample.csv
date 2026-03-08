@@ -1,0 +1,4 @@
+name,sku,category,platforms,pharmacy,images
+Paracetamol 500mg,P5000,Misc,Amazon|Ebay|TikTok,Ecare,https://i.ibb.co/xyz123/paracetamol1.jpg|https://i.ibb.co/xyz456/paracetamol2.jpg
+Vitamin C 1000mg,VC10000,Electronics,Amazon|Temu,Ecare,https://i.ibb.co/abc123/vitamin-c.jpg
+Aspirin 75mg,A755,Misc,Ebay|Woucher,Ecare,https://i.ibb.co/def456/aspirin.jpg
