@@ -15,19 +15,19 @@ export function ProductsPage() {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
 
   // Fetch products
- useEffect(() => {
-  fetchProducts();
-      
+  useEffect(() => {
+    fetchProducts();
+
   }, [isModalOpen]);
 
   const fetchProducts = (page = 0, size = 1000) => { // fetch many items at once
-  fetch(`https://pharmacy-management-9ym8.onrender.com/products?page=${page}&size=${size}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.content) setProducts(data.content);
-    })
-    .catch(console.error);
-};
+    fetch(`https://pharmacy-management-9ym8.onrender.com/products?page=${page}&size=${size}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.content) setProducts(data.content);
+      })
+      .catch(console.error);
+  };
 
 
 
@@ -72,6 +72,38 @@ export function ProductsPage() {
     setIsModalOpen(false);
   };
 
+  const exportToCSV = () => {
+  if (products.length === 0) return alert("No products to export");
+
+  // 1. CSV header
+  const header = ["ID", "Name", "SKU", "Category", "Platforms", "Pharmacy", "Image URLs"];
+  
+  // 2. CSV rows
+  const rows = products.map(p => [
+    p.id,
+    p.name,
+    p.sku,
+    p.category,
+    p.platforms.join("|"), // use pipe to separate multiple platforms
+    p.pharmacy || "",
+    p.images.join("|") // multiple images separated by pipe
+  ]);
+
+  // 3. Combine header + rows
+  const csvContent = [header, ...rows]
+    .map(row => row.map(cell => `"${cell}"`).join(",")) // wrap each cell in quotes
+    .join("\n");
+
+  // 4. Create blob and trigger download
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `products_export_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
   return (
     <div>
       {/* Filters & Add Button */}
@@ -112,7 +144,13 @@ export function ProductsPage() {
           >
             Bulk Upload
           </button>
-
+          {/* bulk export button */}
+          <button
+            onClick={exportToCSV}
+            className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Export CSV
+          </button>
           <button onClick={() => { setProductToEdit(null); setIsModalOpen(true); }}
             className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
             <Plus className="w-4 h-4" />

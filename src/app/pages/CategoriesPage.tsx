@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { useState, useEffect, ChangeEvent } from "react";
+import { Plus, Edit, Trash2, X, DownloadCloud, UploadCloud } from "lucide-react";
 
 interface Category {
   id: number;
@@ -13,6 +13,7 @@ export function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
 
   // Fetch categories
   const fetchCategories = async () => {
@@ -45,7 +46,6 @@ export function CategoriesPage() {
   // Add new category
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return alert("Enter a category name");
-
     try {
       const res = await fetch("https://pharmacy-management-9ym8.onrender.com/categories/", {
         method: "POST",
@@ -56,16 +56,32 @@ export function CategoriesPage() {
 
       setNewCategoryName("");
       setIsModalOpen(false);
-      fetchCategories(); // Refresh list
+      fetchCategories();
     } catch (err) {
       console.error(err);
       alert("Failed to add category");
     }
   };
 
-  const handleDelete = (id: number) =>
-    setCategories(categories.filter((c) => c.id !== id));
+  // Delete category
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this category?")) return;
 
+    try {
+      const res = await fetch(`https://pharmacy-management-9ym8.onrender.com/categories/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete category");
+
+      alert("Category deleted!");
+      fetchCategories();
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting category");
+    }
+  };
+
+  // Toggle status locally
   const toggleStatus = (id: number) =>
     setCategories(
       categories.map((c) =>
@@ -75,12 +91,84 @@ export function CategoriesPage() {
       )
     );
 
+  // Export categories as CSV
+  const handleExport = () => {
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      ["ID,Name,Created At,Status"]
+        .concat(categories.map((c) => `${c.id},${c.name},${c.createdAt},${c.status}`))
+        .join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "categories.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Handle bulk file selection
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) setBulkFile(e.target.files[0]);
+  };
+
+  // Bulk upload categories
+  const handleBulkUpload = async () => {
+    if (!bulkFile) return alert("Select a CSV file");
+
+    try {
+      const text = await bulkFile.text();
+      const lines = text.split("\n").map((line) => line.trim()).filter((line) => line);
+
+      // Convert CSV lines to objects
+      const requests = lines.map((name) => ({ name }));
+
+      const res = await fetch("https://pharmacy-management-9ym8.onrender.com/categories/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requests),
+      });
+      if (!res.ok) throw new Error("Bulk upload failed");
+
+      setBulkFile(null);
+      fetchCategories();
+      alert("Bulk upload successful!");
+    } catch (err) {
+      console.error(err);
+      alert("Bulk upload failed");
+    }
+  };
+
   if (loading) return <div>Loading categories...</div>;
 
   return (
     <div>
-      {/* Add Category Button */}
-      <div className="flex justify-end mb-6">
+      {/* Top Buttons */}
+      <div className="flex flex-wrap gap-4 justify-end mb-6">
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <DownloadCloud className="w-4 h-4" />
+          Export CSV
+        </button>
+
+        <label className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors">
+          <UploadCloud className="w-4 h-4" />
+          Bulk Import
+          <input type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+        </label>
+
+        {bulkFile && (
+          <button
+            onClick={handleBulkUpload}
+            className="px-6 py-2 bg-green-800 text-white rounded-lg hover:bg-green-900 transition-colors"
+          >
+            Upload File
+          </button>
+        )}
+
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"

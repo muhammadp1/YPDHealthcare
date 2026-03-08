@@ -36,7 +36,7 @@ export function DashboardPage() {
 
   // Hardcoded platform status
   const platforms = [
-    { name: "Amazon", status: "Active", logo: "/src/app/components/image.png" },
+    { name: "Amazon", status: "Active", logo: "../components/image.png" },
     { name: "Ebay", status: "Inactive", logo: "/src/app/components/image.png" },
     { name: "Temu", status: "Active", logo: "/src/app/components/image.png" },
     { name: "TikTok", status: "Active", logo: "/src/app/components/image.png" },
