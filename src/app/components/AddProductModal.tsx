@@ -19,6 +19,7 @@ export function AddProductModal({ isOpen, onClose, productToEdit }: AddProductMo
   const [selectedPharmacies, setSelectedPharmacies] = useState<string[]>([]);
   const [categoryInput, setCategoryInput] = useState("");      // what user types / sees
   const [selectedCategoryId, setSelectedCategoryId] = useState(""); // ID sent to backend
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
 
   // Dropdown Data
   const [categories, setCategories] = useState<Category[]>([]);
@@ -26,41 +27,41 @@ export function AddProductModal({ isOpen, onClose, productToEdit }: AddProductMo
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
 
   // Prefill fields when editing
- useEffect(() => {
-  if (!isOpen) return;
+  useEffect(() => {
+    if (!isOpen) return;
 
-  if (productToEdit) {
-    setProductName(productToEdit.name);
-    setSku(productToEdit.sku);
+    if (productToEdit) {
+      setProductName(productToEdit.name);
+      setSku(productToEdit.sku);
 
-    // Prefill category AFTER categories are loaded
-    if (categories.length > 0) {
-      const category = categories.find(cat => cat.name === productToEdit.category);
-      if (category) {
-        setSelectedCategoryId(category.id.toString());
-        setCategoryInput(category.name); // ✅ This sets the input field
-      } else {
-        setSelectedCategoryId("");
-        setCategoryInput("");
+      // Prefill category AFTER categories are loaded
+      if (categories.length > 0) {
+        const category = categories.find(cat => cat.name === productToEdit.category);
+        if (category) {
+          setSelectedCategoryId(category.id.toString());
+          setCategoryInput(category.name); // ✅ This sets the input field
+        } else {
+          setSelectedCategoryId("");
+          setCategoryInput("");
+        }
       }
+
+      const platformIds = platforms
+        .filter(p => productToEdit.platforms.includes(p.name))
+        .map(p => p.id.toString());
+      setSelectedPlatforms(platformIds);
+
+      const pharmacyId = pharmacies.find(ph => ph.name === productToEdit.pharmacy)?.id;
+      setSelectedPharmacies(pharmacyId !== undefined ? [pharmacyId.toString()] : []);
+
+      setImages(
+        productToEdit.images.map(img => ({ imageUrl: img, isPrimary: false }))
+          .concat(Array(5 - productToEdit.images.length).fill({ imageUrl: null, isPrimary: false }))
+      );
+    } else {
+      resetForm();
     }
-
-    const platformIds = platforms
-      .filter(p => productToEdit.platforms.includes(p.name))
-      .map(p => p.id.toString());
-    setSelectedPlatforms(platformIds);
-
-    const pharmacyId = pharmacies.find(ph => ph.name === productToEdit.pharmacy)?.id;
-    setSelectedPharmacies(pharmacyId !== undefined ? [pharmacyId.toString()] : []);
-
-    setImages(
-      productToEdit.images.map(img => ({ imageUrl: img, isPrimary: false }))
-        .concat(Array(5 - productToEdit.images.length).fill({ imageUrl: null, isPrimary: false }))
-    );
-  } else {
-    resetForm();
-  }
-}, [productToEdit, categories, platforms, pharmacies, isOpen]);
+  }, [productToEdit, categories, platforms, pharmacies, isOpen]);
   // Fetch categories, platforms, pharmacies
   useEffect(() => {
     if (!isOpen) return;
@@ -155,32 +156,36 @@ export function AddProductModal({ isOpen, onClose, productToEdit }: AddProductMo
             </div>
             {/* Category */}
             <div>
-             
+
               <div>
-                <label className="block mb-2">Category</label>
+                
                 <div className="relative">
+                  <label className="block mb-2">Category</label>
                   <input
                     type="text"
                     value={categoryInput}
+                    onFocus={() => setCategoryDropdownOpen(true)} // open dropdown when user focuses
                     onChange={(e) => {
                       setCategoryInput(e.target.value);
-                      setSelectedCategoryId(""); // reset ID if user types
+                      setSelectedCategoryId("");
+                      setCategoryDropdownOpen(true); // keep open while typing
                     }}
                     placeholder="Select or type category"
                     className="w-full px-4 py-2 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
                   />
 
                   {/* Dropdown list */}
-                  {isOpen && categoryInput && (
-                    <ul className="absolute z-50 w-full max-h-48 overflow-y-auto bg-white border border-border mt-1 rounded-lg shadow-md">
+                  {categoryDropdownOpen && categoryInput && (
+                    <ul className="absolute top-full left-0 z-50 w-full max-h-48 overflow-y-auto bg-white border border-border mt-1 rounded-lg shadow-lg">
                       {categories
                         .filter(cat => cat.name.toLowerCase().includes(categoryInput.toLowerCase()))
                         .map(cat => (
                           <li
                             key={cat.id}
                             onClick={() => {
-                              setCategoryInput(cat.name);
-                              setSelectedCategoryId(cat.id.toString());
+                              setCategoryInput(cat.name);           // show selected name
+                              setSelectedCategoryId(cat.id.toString()); // store ID
+                              setCategoryDropdownOpen(false);       // close dropdown
                             }}
                             className="px-4 py-2 hover:bg-muted cursor-pointer"
                           >
@@ -188,7 +193,6 @@ export function AddProductModal({ isOpen, onClose, productToEdit }: AddProductMo
                           </li>
                         ))}
 
-                      {/* Add new category if not exists */}
                       {!categories.some(cat => cat.name.toLowerCase() === categoryInput.toLowerCase()) && (
                         <li
                           onClick={async () => {
@@ -203,6 +207,7 @@ export function AddProductModal({ isOpen, onClose, productToEdit }: AddProductMo
                               setCategories([...categories, newCat]);
                               setCategoryInput(newCat.name);
                               setSelectedCategoryId(newCat.id.toString());
+                              setCategoryDropdownOpen(false); // ✅ close dropdown after adding
                               alert(`Category "${newCat.name}" added!`);
                             } catch (err) {
                               console.error(err);
