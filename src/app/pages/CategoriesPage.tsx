@@ -18,7 +18,7 @@ export function CategoriesPage() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/categories/");
+      const res = await fetch("https://pharmacy-management-9ym8.onrender.com/categories/");
       if (!res.ok) throw new Error("Failed to fetch categories");
 
       const data = await res.json();
